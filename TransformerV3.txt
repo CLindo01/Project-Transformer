@@ -1,0 +1,115 @@
+"""
+Script documentation
+This version of the script is now capable of creating a table even without a Node Geoclass feature as input.
+In the previous verison, users had to provide a Node table as input in order for the script to function.
+But in this new script, input is optional. So if the user does not want to convert data from their node table, or if
+they do not have a node table to convert at all but wish to convert other tables, they can now do this without having to
+select a Node table.
+It should be noted the script will still create a node table even without input. The resulting table will be blank however
+except for the preassigned headings.
+"""
+import arcpy
+import csv
+import tkinter as tk
+from tkinter import filedialog
+# List of columns from Node file that will be written into the new excel file.
+# The names must be exactly the same as the headers for the table. 
+ArcGIS_Node_Field_Names = ["OBJECTID", "INITIAL_STG", "TYPE", "NAME"]
+# List of column headers for the new csv file (to be imported into ICPR4)
+ICPR_Node_Field_Names = ["ID", "ParentID", "Name", "Type", "BaseFlow", "InitialStage", "WarningStage",
+                         "BoundaryStage", "Comment", "ShapeX", "ShapeY", "ShapeZ", "TextX", "TextY",
+                         "TextZ", "TextAngle", "IsPlaced"]
+# Main function
+def script_tool(param0):
+    """Script code goes below"""
+    return
+# Main if statement
+if __name__ == "__main__":
+    
+    # This gets the node file which is uploaded in the parameters tab.
+    # Param0 also acts as the address of the file so the program knows
+    # where to access the data.
+    param0 = arcpy.GetParameter(0)
+    arcpy.env.workspace = param0
+    
+    # Before it starts scanning for data, these lines of code create a new
+        # csv file and allow the user to choose where it will be saved too. They
+        # cause the file explorer window to open when the program is run.
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    # This gets the new csv file's address from the user and stores it
+        # under file_path
+    file_path = filedialog.asksaveasfilename(defaultextension=".csv",
+                                             filetypes=[("CSV files", "*.csv"), ("All files", "*.*")])
+        # This determines if the file path is legitimate
+    if file_path:
+        
+        
+            # These lines open up the new csv file and prep it for data entry
+        with open(file_path, 'w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+                # This line creates the new headers for all the columns
+                # So they don't have to be exactly the same as they are in the
+                # node table. Make sure these headers match up with those of a
+                # csv file that is compatible with ICPR4
+            csv_writer.writerow(ICPR_Node_Field_Names)
+    
+            # The 'with statement' below starts the process of scanning all the date from the Nodes file.
+            # The 'try statemnt' checks to see if a geoclass feature has been inputed into Param0. If there is
+            # no inputed table, the statement addresses any errors that would show up and creates a table that is
+            # empty, but still compatible with ICPR4. Essentially, this allows the user to run the script without
+            # having to submit a Node file for input.
+            try:
+                with arcpy.da.SearchCursor(param0, ArcGIS_Node_Field_Names) as cursor:
+                    # This creates an empty list which will be filled with data
+                    # for each node. The data will be added to the csv at the
+                    # bottom of the for loop.
+                    Node = []       
+        
+        
+                # This loop goes through all the rows of the specified columns
+                # and copies their data into the Node list.
+                    for row in cursor:
+                        # Each of the append statements adds a different element to the Node list
+                        # Some will be taken from the ArcGIS files, and some will be hardcoded in.
+                        
+                        Node.append(row[0]) # Adds ID 
+                        Node.append("{1E0A83D4-6F20-49F7-8831-0A7A575DD822}") # Adds ParentID
+                        Node.append(row[3]) # Adds NAME
+                        Node.append(row[2]) # Adds TYPE
+                        Node.append(0) # Adds BaseFlow
+                        Node.append(row[1]) # Adds InitialStage
+                        Node.append(0) # Adds WarningStage
+                        Node.append('') # Adds BoundaryStage
+                        Node.append('')                 # Comment
+                        Node.append(0)    # ShapeX
+                        Node.append(0)    # ShapeY
+                        Node.append(0)    # ShapeZ
+                        Node.append(3.3)                 # TextX
+                        Node.append(3.3)                 # TextY
+                        Node.append(0)                 # TextZ
+                        Node.append(0)                 # TextAngle
+                        Node.append(1)                 # IsPlaced
+                    
+                        # At this point, the Node list is full of data for a single Node.
+                        # The next line then writes the data into the csv
+                        
+                        csv_writer.writerow(Node)
+                        # Now that the data has been written in, the Node list is
+                        # erased, creating a new blank list for the next Node in the
+                        # for loop. 
+                        Node = []
+                                
+            # These except and finally statements serve no purpose other
+            # than to close off the try statement above. 
+            except AttributeError:
+                print('error')
+            except RuntimeError:
+                print('error')
+            finally:
+                print('complete')
+            #Upon completion of this script, the csv file is closed off and saved.
+    
+    
+    
+
