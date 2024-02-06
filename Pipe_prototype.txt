@@ -69,7 +69,7 @@ if __name__ == "__main__":
                     Pipe.append('')  # Adds BendLossCoef
                     Pipe.append('')  # Adds BendLocation
                     Pipe.append(0)  # Adds EnergySwitch
-                    Pipe.append(row[17]])  # Adds UsInvert
+                    Pipe.append(row[17])  # Adds UsInvert
                     Pipe.append(row[21])  # Adds UsManningsN
                     Pipe.append(row[14])  # Adds UsGeometry
                     Pipe.append(row[19])  # Adds UsMaxDepth
