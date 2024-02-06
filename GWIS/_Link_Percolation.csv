@@ -1,0 +1,1 @@
+ID,ParentID,AquiferBaseElev,WaterTableElev,AnnualRechargeRate,HorizConductivity,VertConductivity,FillablePorosity,LayerThickness,SurfAreaOption,BottomElevation,SurfaceArea,VertFlowTermination,Perimeter1,Perimeter2,Perimeter3,Distance_P1P2,Distance_P2P3,Cells_P1P2,Cells_P2P3,PctFinalRate,ConstantRate
