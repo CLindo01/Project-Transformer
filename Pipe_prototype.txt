@@ -3,10 +3,8 @@ import csv
 import tkinter as tk
 from tkinter import filedialog
 ArcGIS_Pipe_Field_Names = ["OBJECTID", "Shape", "Id", "Aerial", "Topovoid", "MajorConv", "AgDitch", "CurrAOI", "Notes",
-                           "Name",
-                           "Source_pip", "Source_ele", "Link_Count", "Length", "Shape_ICPR", "End_Type", "Material","US_Inv",
-                           "DS_Inv", "Pipe_Size", "Source_Not", "Mannings",
-                           "FHWA", "K_Ent", "K_Exit", "Shape_Length"]
+                           "Name","Source_pip", "Source_ele", "Link_Count", "Length", "Shape_ICPR", "End_Type", "Material",
+                           "US_Inv","DS_Inv", "Pipe_Size", "Source_Not", "Mannings","FHWA", "K_Ent", "K_Exit", "Shape_Length"]
 ICPR_Pipe_Field_Names = ["ID", "ParentID", "DampeningThreshold", "Length", "FHWACulvertCode", "EntranceLossCoef",
                          "ExitLossCoef", "BendLossCoef", "BendLocation", "EnergySwitch", "UsInvert", "UsManningsN",
                          "UsGeometry", "UsMaxDepth", "UsMaxWidth", "UsFillet", "UsCrossSection", "UsBottomClip",
@@ -16,7 +14,6 @@ ICPR_Pipe_Field_Names = ["ID", "ParentID", "DampeningThreshold", "Length", "FHWA
                          "DsBottomClipTable", "DsNode_BottomClip", "DsBottomClipManningsN", "DsTopClip",
                          "DsTopClipTable", "DsNode_TopClip", "DsTopClipManningsN"
                          ]
-
 # This gets the node file which is uploaded in the parameters tab.
 # Param0 also acts as the address of the file so the program knows
 # where to access the data.
@@ -115,4 +112,3 @@ if __name__ == "__main__":
         finally:
             print('complete')
         # Upon completion of this script, the csv file is closed off and saved.
-# Tony and Christian's code goes here.
