@@ -1,0 +1,1 @@
+ID,ParentID,OverlandFlowRegion,GroundwaterRegion,MeshScalingFactor,TrenchLength,TrenchWidth,TrenchHeight,TrenchDepthBelowInvert,TrenchGravelPorosity,DampeningThreshold,FHWACulvertCode,EntranceLossCoef,ExitLossCoef,BendLossCoef,BendLocation,EnergySwitch,PipeLength,UsPipeInvert,DsPipeInvert,ManningsN,PipeGeometry,PipeMaxDepth,PipeMaxWidth,PipeFillet,PipeCrossSection

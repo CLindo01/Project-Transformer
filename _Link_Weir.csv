@@ -1,0 +1,1 @@
+ID,ParentID,DampeningThreshold,WeirType,Geometry,Invert,ControlElevation,CrossSection,ExtrapolationMethod,MaxDepth,MaxWidth,Fillet,BottomWidth,LeftSideSlope,RightSideSlope,BottomClip,TopClip,WeirDischargeCoef,OrificeDischargeCoef,BottomClipTable,TopClipTable,WeirDischargeCoefTable,OrificeDischargeCoefTable,Node_BottomClip,Node_TopClip
