@@ -1,0 +1,71 @@
+import arcpy
+import csv
+import os
+import tkinter as tk
+from tkinter import filedialog
+
+# List of columns from Links file that will be written into the new CSV file.
+ArcGIS_Link_Field_Names = ["NAME", "TYPE", "NODE_FROM", "NODE_TO"]
+
+# List of column headers for the new CSV file (to be imported into ICPR4)
+ICPR_Link_Field_Names = ["ID", "ParentID", "Name", "Type", "Node_From", "Node_To"]
+
+# Link type to Type Code dictionary
+link_type_dict = {
+    "CHANNEL": 23,
+    "WEIR_OVERLAND": 24,
+    "DROP STRUCTURE": 22,
+    "RATING CURVE": 27,
+    "PERCOLATION": 33,
+    "PIPE": 21
+}
+
+# This gets the link file which is uploaded in the parameters tab.
+param0 = arcpy.GetParameterAsText(0)
+arcpy.env.workspace = param0
+
+def script_tool(param0):
+    """Script code goes below"""
+    return
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    folder_path = filedialog.asksaveasfilename(filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+    
+    if folder_path:
+        print("Selected file for saving:", folder_path)
+        try:
+            os.makedirs(folder_path)
+            print(f"Empty folder created at {folder_path}")
+        except FileExistsError:
+            print(f"Folder at {folder_path} already exists.")
+        
+        with open(folder_path + "/_Link.csv", 'w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(ICPR_Link_Field_Names)
+            
+            try:
+                with arcpy.da.SearchCursor(param0, ArcGIS_Link_Field_Names) as cursor:
+                    id_counter = 1  # Initialize the ID counter
+                    for row in cursor:
+                        Link = []
+                        # Map values from the ArcGIS Link fields to the ICPR Link fields
+                        Link.append(id_counter)  # Adds sequential ID
+                        Link.append("{1E0A83D4-6F20-49F7-8831-0A7A575DD822}")  # Adds ParentID
+                        
+                        # Handle <null> values for NAME, NODE_FROM, and NODE_TO
+                        Link.append(row[0] if row[0] is not None else '<null>')  # Adds NAME
+                        Link.append(link_type_dict.get(row[1], ''))  # Adds TYPE based on the dictionary
+                        Link.append(row[2] if row[2] is not None else '<null>')  # Adds NODE_FROM
+                        Link.append(row[3] if row[3] is not None else '<null>')  # Adds NODE_TO
+                        
+                        csv_writer.writerow(Link)
+                        id_counter += 1  # Increment the ID counter for the next row
+                        Link = []
+            except AttributeError:
+                print('error')
+            except RuntimeError:
+                print('runtime error')
+            finally:
+                print('complete')
