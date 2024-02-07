@@ -61,14 +61,34 @@ if __name__ == "__main__":
                     Pipe.append('')  # Adds DampeningThreshold
                     Pipe.append(row[13])  # Adds Length
                     Pipe.append('')  # Adds FHWACulvertCode
-                    Pipe.append('')  # Adds EntranceLossCoef
+                    if row[15] == 'Endwall': # Adds EntranceLossCoef
+                        Pipe.append(0.5)
+                    elif row[15] == 'Flared End Section (FES)':
+                        Pipe.append(0.7)
+                    elif row[15] == 'Manhole':
+                        Pipe.append(0.5)
+                    elif row[15] == 'Mitered End Section (MES)':
+                        Pipe.append(0.7)
+                    elif row[15] == 'No End Treatment':
+                        Pipe.append(0.9)
+                    elif row[15] == 'Slide Gate':
+                        Pipe.append(0.9)
+                    #Pipe.append('')  # Adds EntranceLossCoef
                     Pipe.append(1)  # Adds ExitLossCoef
                     Pipe.append('')  # Adds BendLossCoef
                     Pipe.append('')  # Adds BendLocation
                     Pipe.append(0)  # Adds EnergySwitch
                     Pipe.append(row[17])  # Adds UsInvert
                     Pipe.append(row[21])  # Adds UsManningsN
-                    Pipe.append(row[14])  # Adds UsGeometry
+                    if row[14] == 'Circular': # Adds UsGeometry
+                        Pipe.append(0)
+                    elif row[14] == 'Horizontal Ellipse':
+                        Pipe.append(1)
+                    elif row[14] == 'Arch':
+                        Pipe.append(3)
+                    elif row[14] == 'Rectangular':
+                        Pipe.append(5)
+                    # Pipe.append(row[14])  # Adds UsGeometry
                     Pipe.append(row[19])  # Adds UsMaxDepth
                     Pipe.append(row[19])  # Adds UsMaxWidth
                     Pipe.append('')  # Adds UsFillet
@@ -83,7 +103,15 @@ if __name__ == "__main__":
                     Pipe.append('')  # Adds UsTopClipManningsN
                     Pipe.append(row[18])  # Adds DsInvert
                     Pipe.append(row[21])  # Adds DsManningsN
-                    Pipe.append(row[14])  # Adds DsGeometry
+                    if row[14] == 'Circular': # Adds DsGeometry
+                        Pipe.append(0)
+                    elif row[14] == 'Horizontal Ellipse':
+                        Pipe.append(1)
+                    elif row[14] == 'Arch':
+                        Pipe.append(3)
+                    elif row[14] == 'Rectangular':
+                        Pipe.append(5)
+                    # Pipe.append(row[14])  # Adds DsGeometry
                     Pipe.append(row[19])  # Adds DsMaxDepth
                     Pipe.append(row[19])  # Adds DsMaxWidth
                     Pipe.append('')  # Adds DsFillet
