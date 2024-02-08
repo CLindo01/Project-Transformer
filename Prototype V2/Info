@@ -1,0 +1,7 @@
+This version of the prototype produces csv tables for Nodes, Links, and Pipes that can be uploaded into ICPR4
+
+TransformerV2.atbx is the toolbox which can (or should) be uploaded into an ArcGIS pro project. It contains MasterScriptV2. 
+
+MasterScriptV2.txt is the python code that does all the work. If for whatever reason TransformerV2 can't be placed into a project, the code from this file
+can be copied and pasted into a newly made toolbox. Note that doing this will require the user to add parameters to the script. They will need to add three
+parameters that take a feature layer as input and are set to optional. 
