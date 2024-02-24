@@ -1,0 +1,290 @@
+import arcpy
+import csv
+import tkinter as tk
+from tkinter import filedialog
+import os
+# List of columns from Node file that will be written into the new excel file.
+# The names must be exactly the same as the headers for the table.
+ArcGIS_Node_Field_Names = ["OBJECTID", "INITIAL_STG", "TYPE", "NAME", "X", "Y"]
+# List of column headers for the new csv file (to be imported into ICPR4)
+ICPR_Node_Field_Names = ["ID", "ParentID", "Name", "Type", "BaseFlow", "InitialStage", "WarningStage",
+                         "BoundaryStage", "Comment", "ShapeX", "ShapeY", "ShapeZ", "TextX", "TextY",
+                         "TextZ", "TextAngle", "IsPlaced"]
+# This gets the node file which is uploaded in the parameters tab.
+# Param0 also acts as the address of the file so the program knows
+# where to access the data.
+param0 = arcpy.GetParameterAsText(0)
+arcpy.env.workspace = param0
+# List of columns from Links file that will be written into the new CSV file.
+ArcGIS_Link_Field_Names = ["NAME", "TYPE", "NODE_FROM", "NODE_TO"]
+# List of column headers for the new CSV file (to be imported into ICPR4)
+ICPR_Link_Field_Names = ["ID", "ParentID", "Name", "Type", "Node_From", "Node_To", "LinkCount", "FlowDirection",
+                         "Comment",
+                         "TextX", "TextY", "TextZ", "TextAngle", "IsPlaced", "ShapeIsClosed"]
+# Link type to Type Code dictionary
+link_type_dict = {
+    "CHANNEL": 23,
+    "WEIR_OVERLAND": 24,
+    "DROP STRUCTURE": 22,
+    "RATING CURVE": 27,
+    "PERCOLATION": 33,
+    "PIPE": 21
+}
+# This gets the link file which is uploaded in the parameters tab.
+param1 = arcpy.GetParameterAsText(1)
+arcpy.env.workspace = param1
+ArcGIS_Pipe_Field_Names = ["Length", "TYPE", "US_Inv", "Mannnings",
+                           "Shape_ICPR", "Pipe_Size", "DS_Inv"]
+ICPR_Pipe_Field_Names = ["ID", "ParentID", "DampeningThreshold", "Length", "FHWACulvertCode", "EntranceLossCoef",
+                         "ExitLossCoef", "BendLossCoef", "BendLocation", "EnergySwitch", "UsInvert", "UsManningsN",
+                         "UsGeometry", "UsMaxDepth", "UsMaxWidth", "UsFillet", "UsCrossSection", "UsBottomClip",
+                         "UsBottomClipTable", "UsNode_BottomClip", "UsBottomClipManningsN", "UsTopClip",
+                         "UsTopClipTable", "UsNode_TopClip", "UsTopClipManningsN", "DsInvert", "DsManningsN",
+                         "DsGeometry", "DsMaxDepth", "DsMaxWidth", "DsFillet", "DsCrossSection", "DsBottomClip",
+                         "DsBottomClipTable", "DsNode_BottomClip", "DsBottomClipManningsN", "DsTopClip",
+                         "DsTopClipTable", "DsNode_TopClip", "DsTopClipManningsN"
+                         ]
+# This gets the node file which is uploaded in the parameters tab.
+# Param0 also acts as the address of the file so the program knows
+# where to access the data.
+param2 = arcpy.GetParameterAsText(2)
+arcpy.env.workspace = param2
+# Main function
+def script_tool(param0):
+    """Script code goes below"""
+    return
+# Main if statement
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    folder_path = filedialog.asksaveasfilename(filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+    if folder_path:
+        print("Selected file for saving:", folder_path)
+        try:
+            os.makedirs(folder_path)
+            print(f"Empty folder created at {folder_path}")
+            # Creates a new folder, "CSVs", within the first folder
+            # This new folder will contain all the csv tables.
+            # The purpose of this is to keep the status report separate
+            # from the tables so it isn't uploaded into ICPR4 with them.
+            CSV_folder_path = os.path.join(folder_path, "CSVs")
+            # Create the new folder
+            os.makedirs(CSV_folder_path)
+        except FileExistsError:
+            print(f"Folder at {folder_path} already exists.")
+        # Open a text file in 'a' mode (append). Creates the document
+        # that will be the transfer report.
+        with open(folder_path + '/Transfer Report.txt', 'a') as file:
+            # Add text to the file
+            file.write("TRANSFER REPORT.\n")
+        # Node_path = folder_path + "/_Node"
+        # print(Node_path)
+        with open(CSV_folder_path + "/_Node.csv", 'w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(ICPR_Node_Field_Names)
+            # The 'with statement' below starts the process of scanning all the date from the Nodes file.
+            # The 'try statemnt' checks to see if a geoclass feature has been inputed into Param0. If there is
+            # no inputed table, the statement addresses any errors that would show up and creates a table that is
+            # empty, but still compatible with ICPR4. Essentially, this allows the user to run the script without
+            # having to submit a Node file for input.
+            try:
+                with arcpy.da.SearchCursor(param0, ArcGIS_Node_Field_Names) as cursor:
+                    Node = []
+                    actual_fields = [field.name for field in arcpy.ListFields(param0)]
+                    missing_fields = [field for field in ArcGIS_Node_Field_Names if field not in actual_fields]
+                    if missing_fields:
+                        # Handle missing fields
+                        with open(folder_path + '/Transfer Report.txt', 'a') as file:
+                            file.write("Missing fields in node data: {}\n".format(", ".join(missing_fields)))
+                            # Write all the field names to the report
+                            file.write("Saved fields: {}\n".format(", ".join(ArcGIS_Node_Field_Names)))
+                    else:
+                        for row in cursor:
+                            Node.append(row[0])  # Adds ID
+                            Node.append("{1E0A83D4-6F20-49F7-8831-0A7A575DD822}")  # Adds ParentID
+                            Node.append(row[3])  # Adds NAME
+                            Node.append(row[2])  # Adds TYPE
+                            Node.append(0)  # Adds BaseFlow
+                            Node.append(row[1])  # Adds InitialStage
+                            Node.append(0)  # Adds WarningStage
+                            Node.append('')  # Adds BoundaryStage
+                            Node.append('')  # Comment
+                            Node.append(row[4])  # ShapeX
+                            Node.append(row[5])  # ShapeY
+                            Node.append(0)  # ShapeZ
+                            if row[4] != None:
+                                Node.append(row[4] + 3.3)  # TextX
+                            else:
+                                Node.append('')
+                            if row[5] != None:
+                                Node.append(row[5] + 3.3)  # TextX
+                            else:
+                                Node.append('')  # TextY
+                            Node.append(0)  # TextZ
+                            Node.append(0)  # TextAngle
+                            Node.append(1)  # IsPlaced
+                            # At this point, the Node list is full of data for a single Node.
+                            # The next line then writes the data into the csv
+                            csv_writer.writerow(Node)
+                            # Now that the data has been written in, the Node list is
+                            # erased, creating a new blank list for the next Node in the
+                            # for loop.
+                            Node = []
+                            # Process each row here
+            finally:
+                with open(folder_path + '/Transfer Report.txt', 'a') as file:
+                    file.write("----------------------------------------------------\n")
+        with open(CSV_folder_path + "/_Link.csv", 'w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(ICPR_Link_Field_Names)
+            try:
+                with arcpy.da.SearchCursor(param1, ArcGIS_Link_Field_Names) as cursor:
+                    actual_fields = [field.name for field in arcpy.ListFields(param1)]
+                    missing_fields = [field for field in ArcGIS_Link_Field_Names if field not in actual_fields]
+                    if missing_fields:
+                        # Handle missing fields
+                        with open(folder_path + '/Transfer Report.txt', 'a') as file:
+                            file.write("Missing fields in link data: {}\n".format(", ".join(missing_fields)))
+                            # Write all the field names to the report
+                            file.write("Saved fields: {}\n".format(", ".join(ArcGIS_Link_Field_Names)))
+                    else:
+                        id_counter = 1  # Initialize the ID counter
+                        for row in cursor:
+                            Link = []
+                            # Map values from the ArcGIS Link fields to the ICPR Link fields
+                            Link.append(id_counter)  # Adds sequential ID
+                            Link.append("{1E0A83D4-6F20-49F7-8831-0A7A575DD822}")  # Adds ParentID
+                            # Handle <null> values for NAME, NODE_FROM, and NODE_TO
+                            Link.append(row[0] if row[0] is not None else '<null>')  # Adds NAME
+                            Link.append(link_type_dict.get(row[1], ''))  # Adds TYPE based on the dictionary
+                            Link.append(row[2] if row[2] is not None else '<null>')  # Adds NODE_FROM
+                            Link.append(row[3] if row[3] is not None else '<null>')  # Adds NODE_TO
+                            Link.append('')  # Adds LinkCount
+                            Link.append('')  # Adds FlowDirection
+                            Link.append('')  # Adds Comment
+                            Link.append('')  # Adds TextX
+                            Link.append('')  # Adds TextY
+                            Link.append('')  # Adds TextZ
+                            Link.append('')  # Adds TextAngle
+                            Link.append('')  # Adds IsPlaced
+                            Link.append('')  # Adds ShapeIsClosed
+                            csv_writer.writerow(Link)
+                            id_counter += 1  # Increment the ID counter for the next row
+                            Link = []
+            finally:
+                with open(folder_path + '/Transfer Report.txt', 'a') as file:
+                    file.write("----------------------------------------------------\n")
+        with open(CSV_folder_path + "/_Pipe_Param.csv", 'w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(ICPR_Pipe_Field_Names)
+            # The 'with statement' below starts the process of scanning all the date from the Nodes file.
+            # The 'try statemnt' checks to see if a geoclass feature has been inputed into Param0. If there is
+            # no inputed table, the statement addresses any errors that would show up and creates a table that is
+            # empty, but still compatible with ICPR4. Essentially, this allows the user to run the script without
+            # having to submit a Node file for input.
+            try:
+                with arcpy.da.SearchCursor(param2, ArcGIS_Pipe_Field_Names) as cursor:
+                    actual_fields = [field.name for field in arcpy.ListFields(param2)]
+                    missing_fields = [field for field in ArcGIS_Pipe_Field_Names if field not in actual_fields]
+                    if missing_fields:
+                        # Handle missing fields
+                        with open(folder_path + '/Transfer Report.txt', 'a') as file:
+                            file.write("Missing fields in pipe data: {}\n".format(", ".join(missing_fields)))
+                            # Write all the field names to the report
+                            file.write("Saved fields: {}\n".format(", ".join(ArcGIS_Pipe_Field_Names)))
+                    else:
+                        # This creates an empty list which will be filled with data
+                        # for each node. The data will be added to the csv at the
+                        # bottom of the for loop.
+                        Pipe = []
+                        # This loop goes through all the rows of the specified columns
+                        # and copies their data into the Node list.
+                        for row in cursor:
+                            # Each of the append statements adds a different element to the Node list
+                            # Some will be taken from the ArcGIS files, and some will be hardcoded in.
+                            Pipe.append(row)  # Adds ID
+                            Pipe.append("{1E0A83D4-6F20-49F7-8831-0A7A575DD822}")  # Adds ParentID
+                            Pipe.append('')  # Adds DampeningThreshold
+                            Pipe.append(row[0])  # Adds Length
+                            Pipe.append('')  # Adds FHWACulvertCode
+                            if row[1] == 'Endwall':  # Adds EntranceLossCoef
+                                Pipe.append(0.5)
+                            elif row[1] == 'Flared End Section (FES)':
+                                Pipe.append(0.7)
+                            elif row[1] == 'Manhole':
+                                Pipe.append(0.5)
+                            elif row[1] == 'Mitered End Section (MES)':
+                                Pipe.append(0.7)
+                            elif row[1] == 'No End Treatment':
+                                Pipe.append(0.9)
+                            elif row[1] == 'Slide Gate':
+                                Pipe.append(0.9)
+                            else:
+                                Pipe.append('')  # Adds EntranceLossCoef
+                            Pipe.append(1)  # Adds ExitLossCoef
+                            Pipe.append('')  # Adds BendLossCoef
+                            Pipe.append('')  # Adds BendLocation
+                            Pipe.append(0)  # Adds EnergySwitch
+                            Pipe.append(row[2])  # Adds UsInvert
+                            Pipe.append(row[3])  # Adds UsManningsN
+                            if row[4] == 'Circular':  # Adds UsGeometry
+                                Pipe.append(0)
+                            elif row[4] == 'Horizontal Ellipse':
+                                Pipe.append(1)
+                            elif row[4] == 'Arch':
+                                Pipe.append(3)
+                            elif row[4] == 'Rectangular':
+                                Pipe.append(5)
+                            else:
+                                Pipe.append('')
+                            # Pipe.append(row[14])  # Adds UsGeometry
+                            Pipe.append(row[5])  # Adds UsMaxDepth
+                            Pipe.append(row[5])  # Adds UsMaxWidth
+                            Pipe.append('')  # Adds UsFillet
+                            Pipe.append('')  # Adds UsCrossSection
+                            Pipe.append('')  # Adds UsBottomClip
+                            Pipe.append('')  # Adds UsBottomClipTable
+                            Pipe.append('')  # Adds UsNode_BottomClip
+                            Pipe.append('')  # Adds UsBottomClipManningsN
+                            Pipe.append('')  # Adds UsTopClip
+                            Pipe.append('')  # Adds UsTopClipTable
+                            Pipe.append('')  # Adds UsNode_TopClip
+                            Pipe.append('')  # Adds UsTopClipManningsN
+                            Pipe.append(row[6])  # Adds DsInvert
+                            Pipe.append(row[3])  # Adds DsManningsN
+                            if row[4] == 'Circular':  # Adds DsGeometry
+                                Pipe.append(0)
+                            elif row[4] == 'Horizontal Ellipse':
+                                Pipe.append(1)
+                            elif row[4] == 'Arch':
+                                Pipe.append(3)
+                            elif row[4] == 'Rectangular':
+                                Pipe.append(5)
+                            else:
+                                Pipe.append('')
+                            # Pipe.append(row[14])  # Adds DsGeometry
+                            Pipe.append(row[5])  # Adds DsMaxDepth
+                            Pipe.append(row[5])  # Adds DsMaxWidth
+                            Pipe.append('')  # Adds DsFillet
+                            Pipe.append('')  # Adds DsCrossSection
+                            Pipe.append('')  # Adds DsBottomClip
+                            Pipe.append('')  # Adds DsBottomClipTable
+                            Pipe.append('')  # Adds DsNode_BottomClip
+                            Pipe.append('')  # Adds DsBottomClipManningsN
+                            Pipe.append('')  # Adds DsTopClip
+                            Pipe.append('')  # Adds DsTopClipTable
+                            Pipe.append('')  # Adds DsNode_TopClip
+                            Pipe.append('')  # Adds DsTopClipManningsN
+                            # At this point, the Node list is full of data for a single Node.
+                            # The next line then writes the data into the csv
+                            csv_writer.writerow(Pipe)
+                            # Now that the data has been written in, the Node list is
+                            # erased, creating a new blank list for the next Node in the
+                            # for loop.
+                            Pipe = []
+                # These except and finally statements serve no purpose other
+                # than to close off the try statement above.
+            finally:
+                with open(folder_path + '/Transfer Report.txt', 'a') as file:
+                    file.write("----------------------------------------------------\n")
+    # Upon completion of this script, the csv file is closed off and saved.
