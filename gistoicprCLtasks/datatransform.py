@@ -21,7 +21,7 @@ icpr_data = sample_data.rename(columns=field_mapping)
 # Keep only the columns that are needed for the ICPR model
 icpr_data = icpr_data[list(field_mapping.values())]
 
-# Convert Time of Concentration to integer if necessary (assuming it should be an integer based on the placeholder 99999 in the image)
+# Convert Time of Concentration to integer if necessary 
 icpr_data['TimeOfConcentration'] = icpr_data['TimeOfConcentration'].astype(int)
 
 # Display the transformed data
