@@ -1,0 +1,48 @@
+import arcpy
+import csv
+import os
+if __name__ == "__main__":
+    param0 = arcpy.GetParameterAsText(0)  # Input CSV file
+    param1 = arcpy.GetParameterAsText(1)  # Output Shapefile
+    # Set the workspace to the directory containing the input CSV file
+    arcpy.env.workspace = arcpy.Describe(param0).path
+    
+    # Read CSV file and extract necessary data
+    with open(param0, 'r') as file:
+        # Read the header row to determine the index of the required fields
+        header = next(file).strip().split(",")
+        name_index = header.index("Name")
+        type_index = header.index("Type")
+        shapeX_index = header.index("ShapeX")
+        shapeY_index = header.index("ShapeY")
+        
+        # Collect the required values from each row
+        data = [(row[name_index], row[type_index], float(row[shapeX_index]), float(row[shapeY_index])) for row in csv.reader(file)]
+    
+    # Extract the output name from the full file path provided in param1
+    output_name = os.path.splitext(os.path.basename(param1))[0]
+    
+    # Set the output workspace to the directory containing the input CSV file
+    output_workspace = arcpy.Describe(param0).path
+    
+    # Set the output path to the combination of the output workspace and output name
+    output_path = os.path.join(output_workspace, output_name + ".shp")
+    
+    # Create shapefile
+    arcpy.management.CreateFeatureclass(output_workspace, output_name, "POINT", spatial_reference=arcpy.SpatialReference(32617))
+    
+    # Define field names for the shapefile
+    arcpy.management.AddField(output_path, "Name", "TEXT")
+    arcpy.management.AddField(output_path, "Type", "TEXT")
+    
+    # Insert the collected data into the shapefile
+    with arcpy.da.InsertCursor(output_path, ["Name", "Type", "SHAPE@XY"]) as cursor:
+        for row in data:
+            # Extract the Name, Type, and coordinates from the row
+            name, type_, x, y = row
+            # Create a point geometry object using the X and Y coordinates
+            point = arcpy.Point(x, y)
+            # Create a feature with the point geometry
+            feature = (name, type_, point)
+            # Insert the feature into the shapefile
+            cursor.insertRow(feature)
