@@ -4,4 +4,4 @@
 * compare with project from Links, you export csv from ICPR by 1D Hydraulics -> Weir Links... -> Menu -> CSV Export.
 * my output are _Link_Weir_Shape.csv and _Link_Weir.csv; target is just Link_Weir_Shape.csv and Link_Weir.csv.
 # Setup
-* after using that Feature Vertices to Points tool, all vertices, not sures its all or not, you use that as param0.
+* after using that Feature Vertices to Points tool, all vertices, not sures its all or not, you use that as param0 as feature layer, input.
