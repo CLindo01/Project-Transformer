@@ -1,0 +1,124 @@
+import arcpy
+import csv
+import tkinter as tk
+from tkinter import filedialog
+import os
+# after running features to vertices tool, maybe I could run that tool together later
+ArcGIS_Link_Field_Names = [
+    "Priority", "PipeID", "PipeShape", "PipeHeight", "PipeWidth", "Material_1",
+    "Assess_Areas", "Outfall", "Run_Name", "Run_Number", "Start_X", "Start_Y",
+    "Start", "End_X", "End_Y", "End_", "Name", "TYPE", "US_Struct_ID",
+    "DS_Struct_ID", "US_DSID", "Area", "Node_From", "Node_To", "Initial_Flows",
+    "QMax", "QMin", "Q", "Ctrl_Ele", "Model_Flag", "ExistingMax", "Mjr6inMax",
+    "Diff", "Pumped", "ORIG_FID"
+]
+# every link type create these types of csv...ex.Link_Weir.csv and Link_Weir_Shape.csv
+ICPR_Link_Weir_Shape_Field_Names = ["Parent", "Vertex", "X", "Y", "Z"]
+ICPR_Link_Weir_Field_Names = [
+    "Name", "Node_From", "Node_To", "LinkCount", "FlowDirection", "Comment",
+    "TextX", "TextY", "TextZ", "TextAngle", "IsPlaced", "ShapeIsClosed",
+    "DampeningThreshold", "WeirType", "Geometry", "Invert", "ControlElevation",
+    "CrossSection", "ExtrapolationMethod", "MaxDepth", "MaxWidth", "Fillet",
+    "BottomWidth", "LeftSideSlope", "RightSideSlope", "BottomClip", "TopClip",
+    "WeirDischargeCoef", "OrificeDischargeCoef", "BottomClipTable",
+    "TopClipTable", "WeirDischargeCoefTable", "OrificeDischargeCoefTable",
+    "Node_BottomClip", "Node_TopClip"
+]
+# This gets the node file which is uploaded in the parameters tab.
+# Param0 also acts as the address of the file so the program knows
+# where to access the data.
+param0 = arcpy.GetParameterAsText(0)
+arcpy.env.workspace = param0
+# Main function to copy over and create 2 csvs
+# Main if statement
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    folder_path = filedialog.asksaveasfilename(filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+    if folder_path:
+        print("Selected file for saving:", folder_path)
+        try:
+            CSV_folder_path = os.path.join(os.path.dirname(folder_path), "CSVs")  # Corrected folder path
+            os.makedirs(CSV_folder_path)  # Corrected folder creation
+            print(f"Empty folder created at {CSV_folder_path}")  # Print the correct folder path
+        except FileExistsError:
+            print(f"Folder at {CSV_folder_path} already exists.")
+    with open(os.path.join(CSV_folder_path, "_Link_Weir_Shape.csv"), 'w', newline='') as csv_file:  # Corrected file path
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(ICPR_Link_Weir_Shape_Field_Names)
+        try:
+            with arcpy.da.SearchCursor(param0, ArcGIS_Link_Field_Names + ["SHAPE@XY"], where_clause="",
+                                       sql_clause=("", "")) as cursor:
+                current_parent = None
+                vertex = 0
+                for row in cursor:
+                    if row[17] == 'OVERLAND WEIR':
+                        parent = row[16]
+                        x, y = row[-1]  # Assuming the geometry is the last field
+                        if parent != current_parent:
+                            current_parent = parent
+                            vertex = 0
+                        else:
+                            vertex += 1
+                        csv_writer.writerow([parent, vertex, x, y, 0])
+        except AttributeError:
+            print('error')
+        except RuntimeError:
+            print('error')
+        finally:
+            print('complete')
+    with open(os.path.join(CSV_folder_path, "_Link_Weir.csv"), 'w', newline='') as csv_file:  # Corrected file path
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(ICPR_Link_Weir_Field_Names)
+        try:
+            with arcpy.da.SearchCursor(param0, ArcGIS_Link_Field_Names) as cursor:
+                    id_counter = 1  # Initialize the ID counter
+                    repeats = {}
+                    for row in cursor:
+                        if row[17] == 'OVERLAND WEIR':
+                            parent = row[16]
+                            if parent not in repeats:
+                                repeats[parent] = row
+                                Link_Weir = []
+                                # Map values from the ArcGIS Link fields to the ICPR Link fields
+                                Link_Weir.append(row[16])  # Adds Name
+                                Link_Weir.append(row[22])  # Adds Node_From
+                                Link_Weir.append(row[23])  # Adds Node_To
+                                Link_Weir.append(1)  # Adds LinkCount
+                                Link_Weir.append(0)  # Adds FlowDirection
+                                Link_Weir.append('')  # Adds Comment
+                                Link_Weir.append(row[10])  # Add TextX..not exactly but text
+                                Link_Weir.append(row[11])  # Add TextY..not exactly but text
+                                Link_Weir.append(0)  # Add TextZ
+                                Link_Weir.append(0)  # Add TextAngle
+                                Link_Weir.append(1)  # Add IsPlaced
+                                Link_Weir.append(0)  # Add ShapeIsClosed
+                                Link_Weir.append(0)  # Add DampeningThreshold
+                                Link_Weir.append(1)  # Add WeirType
+                                Link_Weir.append(17)  # Add Geometry..last one is 5
+                                Link_Weir.append(row[28])  # Add Invert
+                                Link_Weir.append(row[28])  # Add ControlEleveation
+                                name = row[16]  # Assuming row[16] is the 'Name' field
+                                cross_section = 'X' + name[1:]
+                                Link_Weir.append(cross_section)# Add CrossSection
+                                Link_Weir.append(0)
+                                Link_Weir.append(0)
+                                Link_Weir.append(0)
+                                Link_Weir.append(0)
+                                Link_Weir.append(0)
+                                Link_Weir.append(0)
+                                Link_Weir.append(0)
+                                Link_Weir.append(0)
+                                Link_Weir.append(0)
+                                Link_Weir.append(3.2)  # Add WeirDischargeCoef
+                                Link_Weir.append(0.6)  # Add OrificeDischargeCoef
+                                Link_Weir.append('')
+                                Link_Weir.append('')
+                                Link_Weir.append('')
+                                Link_Weir.append('')
+                                Link_Weir.append('')
+                                Link_Weir.append('')
+                                csv_writer.writerow(Link_Weir)
+                                id_counter += 1  # Increment the ID counter for the next row
+        finally:
+            print('complete')
